@@ -5,12 +5,20 @@ import { UserWarning } from './UserWarning';
 import { USER_ID } from './api/todos';
 import * as todoService from './api/todos';
 import { Todo } from './types/Todo';
+import classNames from 'classnames';
+enum Filter {
+  All = 'all',
+  Active = 'active',
+  Completed = 'completed',
+}
+
+type FilterType = 'all' | 'active' | 'completed';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loadingTodoId, setLoadingTodoId] = useState<number | null>(null);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [filter, setFilter] = useState<FilterType>('all');
   const [newTitle, setNewTitle] = useState('');
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -161,11 +169,9 @@ export const App: React.FC = () => {
           {/* this button should have `active` class only if all todos are completed */}
           <button
             type="button"
-            className={`todoapp__toggle-all ${
-              todos.length > 0 && todos.every(todo => todo.completed)
-                ? 'active'
-                : ''
-            }`}
+            className={classNames('todoapp__toggle-all', {
+              active: todos.length > 0 && todos.every(todo => todo.completed),
+            })}
             data-cy="ToggleAllButton"
           />
 
@@ -191,7 +197,7 @@ export const App: React.FC = () => {
           {[...filterTodos, ...(tempTodo ? [tempTodo] : [])].map(todo => (
             <div
               data-cy="Todo"
-              className={`todo ${todo.completed ? 'completed' : ''}`}
+              className={classNames('todo', { completed: todo.completed })}
               key={todo.id}
             >
               <label className="todo__status-label">
@@ -217,11 +223,11 @@ export const App: React.FC = () => {
 
               <div
                 data-cy="TodoLoader"
-                className={`modal overlay ${
-                  loadingTodoId === todo.id || tempTodo?.id === todo.id
-                    ? ''
-                    : 'hidden'
-                }`}
+                className={classNames('modal overlay', {
+                  hidden: !(
+                    loadingTodoId === todo.id || tempTodo?.id === todo.id
+                  ),
+                })}
               >
                 <div className="modal-background has-background-white-ter" />
                 <div className="loader" />
@@ -241,10 +247,12 @@ export const App: React.FC = () => {
             <nav className="filter" data-cy="Filter">
               <a
                 href="#/"
-                className={`filter__link  ${filter === 'all' ? 'selected' : ''}`}
+                className={classNames('filter__link', {
+                  selected: filter === Filter.All,
+                })}
                 data-cy="FilterLinkAll"
                 onClick={() => {
-                  setFilter('all');
+                  setFilter(Filter.All);
                 }}
               >
                 All
@@ -252,10 +260,12 @@ export const App: React.FC = () => {
 
               <a
                 href="#/active"
-                className={`filter__link ${filter === 'active' ? 'selected' : ''}`}
+                className={classNames('filter__link', {
+                  selected: filter === Filter.Active,
+                })}
                 data-cy="FilterLinkActive"
                 onClick={() => {
-                  setFilter('active');
+                  setFilter(Filter.Active);
                 }}
               >
                 Active
@@ -263,10 +273,12 @@ export const App: React.FC = () => {
 
               <a
                 href="#/completed"
-                className={`filter__link ${filter === 'completed' ? 'selected' : ''}`}
+                className={classNames('filter__link', {
+                  selected: filter === Filter.Completed,
+                })}
                 data-cy="FilterLinkCompleted"
                 onClick={() => {
-                  setFilter('completed');
+                  setFilter(Filter.Completed);
                 }}
               >
                 Completed
