@@ -21,7 +21,6 @@ export const TodoList: React.FC<Props> = ({
   return (
     <>
       <section className="todoapp__main" data-cy="TodoList">
-        {/* This is a completed todo */}
         {visibleTodos.map(todo => (
           <div
             data-cy="Todo"
@@ -52,9 +51,8 @@ export const TodoList: React.FC<Props> = ({
             <div
               data-cy="TodoLoader"
               className={classNames('modal overlay', {
-                hidden: !(
-                  loadingTodoId === todo.id || tempTodo?.id === todo.id
-                ),
+                'is-active':
+                  loadingTodoId === todo.id || tempTodo?.id === todo.id,
               })}
             >
               <div className="modal-background has-background-white-ter" />

@@ -15,6 +15,8 @@ export const Footer: React.FC<Props> = ({
   onFilterChange,
   onClearCompleted,
 }) => {
+  const filtersValues = Object.values(Filter);
+
   return (
     <>
       {todos.length > 0 && (
@@ -23,49 +25,22 @@ export const Footer: React.FC<Props> = ({
             {todos.filter(todo => !todo.completed).length} items left
           </span>
 
-          {/* Active link should have the 'selected' class */}
           <nav className="filter" data-cy="Filter">
-            <a
-              href="#/"
-              className={classNames('filter__link', {
-                selected: filter === Filter.All,
-              })}
-              data-cy="FilterLinkAll"
-              onClick={() => {
-                onFilterChange(Filter.All);
-              }}
-            >
-              All
-            </a>
-
-            <a
-              href="#/active"
-              className={classNames('filter__link', {
-                selected: filter === Filter.Active,
-              })}
-              data-cy="FilterLinkActive"
-              onClick={() => {
-                onFilterChange(Filter.Active);
-              }}
-            >
-              Active
-            </a>
-
-            <a
-              href="#/completed"
-              className={classNames('filter__link', {
-                selected: filter === Filter.Completed,
-              })}
-              data-cy="FilterLinkCompleted"
-              onClick={() => {
-                onFilterChange(Filter.Completed);
-              }}
-            >
-              Completed
-            </a>
+            {filtersValues.map(f => (
+              <a
+                key={f}
+                href={`#/${f === 'all' ? '' : f}`}
+                className={classNames('filter__link', {
+                  selected: filter === f,
+                })}
+                data-cy={`FilterLink${f.charAt(0).toUpperCase() + f.slice(1)}`}
+                onClick={() => onFilterChange(f as Filter)}
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </a>
+            ))}
           </nav>
 
-          {/* this button should be disabled if there are no completed todos */}
           <button
             disabled={!todos.some(todo => todo.completed)}
             type="button"

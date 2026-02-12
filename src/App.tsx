@@ -11,19 +11,28 @@ import { TodoList } from './components/TodoList/TodoList';
 import { Footer } from './components/Footer/Footer';
 // eslint-disable-next-line max-len
 import { ErrorNotification } from './components/ErrorNotification/ErrorNotification';
+
+export enum ErrorText {
+  EmptyTitle = 'Title should not be empty',
+  AddFailed = 'Unable to add a todo',
+  UpdateFailed = 'Unable to update a todo',
+  DeleteFailed = 'Unable to delete a todo',
+  LoadFailed = 'Unable to load todos',
+}
+
 export enum Filter {
   All = 'all',
   Active = 'active',
   Completed = 'completed',
 }
 
-export type FilterType = 'all' | 'active' | 'completed';
+export type FilterType = Filter.All | Filter.Active | Filter.Completed;
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loadingTodoId, setLoadingTodoId] = useState<number | null>(null);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [filter, setFilter] = useState<FilterType>(Filter.All);
   const [newTitle, setNewTitle] = useState('');
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -35,7 +44,7 @@ export const App: React.FC = () => {
     const trimmed = newTitle.trim();
 
     if (!trimmed) {
-      setError('Title should not be empty');
+      setError(ErrorText.EmptyTitle);
       inputRef.current?.focus();
 
       return;
@@ -63,7 +72,7 @@ export const App: React.FC = () => {
       setNewTitle('');
       inputRef.current?.focus();
     } catch {
-      setError('Unable to add a todo');
+      setError(ErrorText.AddFailed);
       inputRef.current?.focus();
     } finally {
       setIsAdding(false);
@@ -78,12 +87,14 @@ export const App: React.FC = () => {
     try {
       await todoService.patchTodo(todo.id, { completed: !todo.completed });
       setTodos(prev =>
-        prev.map(t =>
-          t.id === todo.id ? { ...t, completed: !t.completed } : t,
+        prev.map(existingTodo =>
+          existingTodo.id === todo.id
+            ? { ...existingTodo, completed: !existingTodo.completed }
+            : existingTodo,
         ),
       );
     } catch {
-      setError('Unable to update a todo');
+      setError(ErrorText.UpdateFailed);
     } finally {
       setLoadingTodoId(null);
     }
@@ -102,7 +113,7 @@ export const App: React.FC = () => {
           await todoService.deleteTodo(todo.id);
           setTodos(prev => prev.filter(t => t.id !== todo.id));
         } catch {
-          setError('Unable to delete a todo');
+          setError(ErrorText.DeleteFailed);
         } finally {
           setLoadingTodoId(null);
         }
@@ -117,7 +128,7 @@ export const App: React.FC = () => {
       await todoService.deleteTodo(todoId);
       setTodos(prev => prev.filter(t => t.id !== todoId));
     } catch {
-      setError('Unable to delete a todo');
+      setError(ErrorText.DeleteFailed);
     } finally {
       setLoadingTodoId(null);
     }
@@ -144,7 +155,7 @@ export const App: React.FC = () => {
         setTodos(fetchedTodos);
       })
       .catch(() => {
-        setError('Unable to load todos');
+        setError(ErrorText.LoadFailed);
       })
       .finally(() => {});
   }, []);
@@ -187,7 +198,6 @@ export const App: React.FC = () => {
           onDelete={handleDeleteTodo}
         />
 
-        {/* Hide the footer if there are no todos */}
         <Footer
           todos={todos}
           filter={filter}
@@ -196,8 +206,6 @@ export const App: React.FC = () => {
         />
       </div>
 
-      {/* DON'T use conditional rendering to hide the notification */}
-      {/* Add the 'hidden' class to hide the message smoothly */}
       <ErrorNotification error={error} onErrorDeleat={() => setError('')} />
     </div>
   );
