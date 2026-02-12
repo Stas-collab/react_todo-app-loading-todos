@@ -5,14 +5,19 @@ import { UserWarning } from './UserWarning';
 import { USER_ID } from './api/todos';
 import * as todoService from './api/todos';
 import { Todo } from './types/Todo';
-import classNames from 'classnames';
-enum Filter {
+
+import { Header } from './components/Header/Header';
+import { TodoList } from './components/TodoList/TodoList';
+import { Footer } from './components/Footer/Footer';
+// eslint-disable-next-line max-len
+import { ErrorNotification } from './components/ErrorNotification/ErrorNotification';
+export enum Filter {
   All = 'all',
   Active = 'active',
   Completed = 'completed',
 }
 
-type FilterType = 'all' | 'active' | 'completed';
+export type FilterType = 'all' | 'active' | 'completed';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -165,155 +170,35 @@ export const App: React.FC = () => {
       <h1 className="todoapp__title">todos</h1>
 
       <div className="todoapp__content">
-        <header className="todoapp__header">
-          {/* this button should have `active` class only if all todos are completed */}
-          <button
-            type="button"
-            className={classNames('todoapp__toggle-all', {
-              active: todos.length > 0 && todos.every(todo => todo.completed),
-            })}
-            data-cy="ToggleAllButton"
-          />
+        <Header
+          todos={todos}
+          newTitle={newTitle}
+          isAdding={isAdding}
+          inputRef={inputRef}
+          onSubmit={handleAddTodo}
+          onTitleChange={setNewTitle}
+        />
 
-          {/* Add a todo on form submit */}
-          <form onSubmit={handleAddTodo}>
-            <input
-              ref={inputRef}
-              disabled={isAdding}
-              data-cy="NewTodoField"
-              type="text"
-              className="todoapp__new-todo"
-              placeholder="What needs to be done?"
-              value={newTitle}
-              onChange={e => {
-                setNewTitle(e.target.value);
-              }}
-            />
-          </form>
-        </header>
-
-        <section className="todoapp__main" data-cy="TodoList">
-          {/* This is a completed todo */}
-          {[...filterTodos, ...(tempTodo ? [tempTodo] : [])].map(todo => (
-            <div
-              data-cy="Todo"
-              className={classNames('todo', { completed: todo.completed })}
-              key={todo.id}
-            >
-              <label className="todo__status-label">
-                <input
-                  data-cy="TodoStatus"
-                  type="checkbox"
-                  className="todo__status"
-                  checked={todo.completed}
-                  onChange={() => toggleTodo(todo)}
-                />
-              </label>
-              <span data-cy="TodoTitle" className="todo__title">
-                {todo.title}
-              </span>
-              <button
-                type="button"
-                className="todo__remove"
-                data-cy="TodoDelete"
-                onClick={() => handleDeleteTodo(todo.id)}
-              >
-                ×
-              </button>
-
-              <div
-                data-cy="TodoLoader"
-                className={classNames('modal overlay', {
-                  hidden: !(
-                    loadingTodoId === todo.id || tempTodo?.id === todo.id
-                  ),
-                })}
-              >
-                <div className="modal-background has-background-white-ter" />
-                <div className="loader" />
-              </div>
-            </div>
-          ))}
-        </section>
+        <TodoList
+          todos={filterTodos}
+          tempTodo={tempTodo}
+          loadingTodoId={loadingTodoId}
+          onToggledTodo={toggleTodo}
+          onDelete={handleDeleteTodo}
+        />
 
         {/* Hide the footer if there are no todos */}
-        {todos.length > 0 && (
-          <footer className="todoapp__footer" data-cy="Footer">
-            <span className="todo-count" data-cy="TodosCounter">
-              {todos.filter(todo => !todo.completed).length} items left
-            </span>
-
-            {/* Active link should have the 'selected' class */}
-            <nav className="filter" data-cy="Filter">
-              <a
-                href="#/"
-                className={classNames('filter__link', {
-                  selected: filter === Filter.All,
-                })}
-                data-cy="FilterLinkAll"
-                onClick={() => {
-                  setFilter(Filter.All);
-                }}
-              >
-                All
-              </a>
-
-              <a
-                href="#/active"
-                className={classNames('filter__link', {
-                  selected: filter === Filter.Active,
-                })}
-                data-cy="FilterLinkActive"
-                onClick={() => {
-                  setFilter(Filter.Active);
-                }}
-              >
-                Active
-              </a>
-
-              <a
-                href="#/completed"
-                className={classNames('filter__link', {
-                  selected: filter === Filter.Completed,
-                })}
-                data-cy="FilterLinkCompleted"
-                onClick={() => {
-                  setFilter(Filter.Completed);
-                }}
-              >
-                Completed
-              </a>
-            </nav>
-
-            {/* this button should be disabled if there are no completed todos */}
-            <button
-              disabled={!todos.some(todo => todo.completed)}
-              type="button"
-              className="todoapp__clear-completed"
-              data-cy="ClearCompletedButton"
-              onClick={() => clearCompleted()}
-            >
-              Clear completed
-            </button>
-          </footer>
-        )}
+        <Footer
+          todos={todos}
+          filter={filter}
+          onFilterChange={setFilter}
+          onClearCompleted={clearCompleted}
+        />
       </div>
 
       {/* DON'T use conditional rendering to hide the notification */}
       {/* Add the 'hidden' class to hide the message smoothly */}
-      <div
-        data-cy="ErrorNotification"
-        className={`notification is-danger is-light has-text-weight-normal ${!error ? 'hidden' : ''}`}
-      >
-        <button
-          data-cy="HideErrorButton"
-          type="button"
-          className="delete"
-          onClick={() => setError('')}
-        />
-        {/* show only one message at a time */}
-        {error}
-      </div>
+      <ErrorNotification error={error} onErrorDeleat={() => setError('')} />
     </div>
   );
 };
